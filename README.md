@@ -1,4 +1,4 @@
-# Case Study Simulator (Pure Front-End)
+# Case Study Simulator
 
 A zero-build, static web app to practice high-stakes business decisions. Runs from a single HTML file; no server required. Optional Supabase sign-in for saving sessions. LLM calls use your OpenAI-compatible endpoint directly from the browser.
 
