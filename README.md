@@ -6,7 +6,7 @@ A zero-build, static web app to practice high-stakes business decisions. Runs fr
 - Supabase OAuth (Google) sign-in/sign-out; sessions saved to Supabase
 - Demo cards to start scenarios; "Start Fresh" free-form chat without sign-in
 - Streaming AI responses via asyncllm with Markdown rendering
-- Configure Base URL, API Key, model, temperature; settings persisted locally
+- Configure Base URL, API Key, model; settings persisted locally
 - Profile modal to list/continue/delete past sessions
 
 ## Architecture
@@ -81,7 +81,7 @@ create policy if not exists "manage own messages"
 - asyncllm (v2) — Streamed Chat Completions for OpenAI-compatible APIs (async iterator over SSE)
   - npm: https://www.npmjs.com/package/asyncllm
   - Used via import map: "asyncllm": "https://cdn.jsdelivr.net/npm/asyncllm@2/+esm"
-- saveform (v2) — Persist form values to localStorage (model/temperature/system prompt)
+- saveform (v2) — Persist form values to localStorage (model/system prompt)
   - npm: https://www.npmjs.com/package/saveform
   - Used via import map: "saveform": "https://cdn.jsdelivr.net/npm/saveform@2/+esm"
 - bootstrap-alert (v1) — Small helper for Bootstrap alert toasts/fallback notifications
@@ -106,8 +106,8 @@ Notes
 - The package `bootstrap-dark-theme` is NOT used; dark mode is handled via @gramex/ui.
 - Example usage patterns for the LLM helpers: https://sanand0.github.io/hypoforge/ and https://sanand0.github.io/apiagent/
 ## Configuration
-- `config.json`: title/subtitle, demo list, default `model`, `temperature`, `systemPrompt`
-- In the app, you can override model/temperature/system prompt via the Advanced Settings form
+- `config.json`: title/subtitle, demo list, default `model`, `systemPrompt`
+- In the app, you can override model/system prompt via the Advanced Settings form
 - LLM endpoint and API key are stored in `localStorage` under `bootstrapLLMProvider_openaiConfig`
 
 ## Development Notes

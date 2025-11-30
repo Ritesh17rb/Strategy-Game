@@ -1,4 +1,4 @@
-﻿// Pure front-end Case Study Simulator
+// Pure front-end Case Study Simulator
 // Sign-in required for saved sessions; streaming via asyncllm; config via bootstrap-llm-provider; alerts via bootstrap-alert
 
 // Tiny DOM helpers
@@ -50,7 +50,7 @@ let freshChatActive = false
 let selectedSession = null
 let selectedMessages = []
 
-// Markdown renderer with fallback; also emphasizes strong text
+// Markdown renderer with fallback
 async function renderMarkdown(text) {
   const src = String(text || '')
   try {
@@ -94,20 +94,56 @@ function startFreshChat() {
 // Configure LLM + open Advanced Settings (requires sign-in)
 $('#configure-llm')?.addEventListener('click', async () => {
   if (!session?.user?.id) { await signIn(); if (!session?.user?.id) return }
-  try { const { openaiConfig } = await loadModule('bootstrap-llm-provider', 'https://cdn.jsdelivr.net/npm/bootstrap-llm-provider@1/+esm'); await openaiConfig({ show: true }) }
-  catch { await showAlert({ title: 'Configure LLM failed', body: 'Provider UI did not load. Check network.', color: 'danger' }) }
+  let openaiConfig
+  try { ({ openaiConfig } = await loadModule('bootstrap-llm-provider', 'https://cdn.jsdelivr.net/npm/bootstrap-llm-provider@1/+esm')) }
+  catch { await showAlert({ title: 'Configure LLM failed', body: 'Provider UI did not load. Check network.', color: 'danger' }); return }
+  try { await openaiConfig({ show: true }) } catch { /* user closed modal */ }
+  // Test configured endpoint if baseUrl/apiKey present
+  try {
+    const ocfg = await loadOrInitOpenAIConfig();
+    const baseUrl = (ocfg?.baseUrl || DEFAULT_BASE_URL).replace(/\/$/, '')
+    const apiKey = ocfg?.apiKey || ''
+    const model = ($('#model')?.value || '').trim() || (ocfg?.models?.[0]) || DEFAULT_MODEL
+    if (baseUrl && apiKey) {
+      let ok = false
+      try { const res = await fetch(baseUrl + '/models', { headers: { Authorization: `Bearer ${apiKey}` } }); ok = res.ok } catch {}
+      if (!ok) {
+        try {
+          const res2 = await fetch(baseUrl + '/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` }, body: JSON.stringify({ model, messages: [{ role: 'user', content: 'ping' }], max_tokens: 1 }) })
+          ok = res2.ok
+        } catch {}
+      }
+      await showAlert({ title: ok ? 'LLM connected' : 'LLM connection failed', body: ok ? 'Endpoint and key look good.' : 'Please verify Base URL, API key, and model.', color: ok ? 'success' : 'danger', replace: true })
+    }
+  } catch (e) {
+    await showAlert({ title: 'LLM test failed', body: String(e?.message || e), color: 'danger', replace: true })
+  }
   const adv = $('#advanced-settings'); if (adv) { try { const c = bootstrap.Collapse.getOrCreateInstance(adv, { toggle: false }); c.show() } catch { adv.classList.add('show') }; $('#model')?.focus() }
 })
 
 // Load app config and demos
 async function loadConfig() {
-  try { const res = await fetch('config.json'); if (!res.ok) throw new Error('config.json not found'); return await res.json() } catch { return { title: 'Case Study Simulator', subtitle: 'High-stakes management practice with one click', demos: [], systemPrompt: 'You are "The Executive"...', model: DEFAULT_MODEL, temperature: 0.7 } }
+  try { const res = await fetch('config.json'); if (!res.ok) throw new Error('config.json not found'); return await res.json() }
+  catch {
+    // Fallback demos so cards show even if config.json cannot be fetched (e.g., local file)
+    return { title: 'Case Study Simulator', subtitle: 'High-stakes management practice with one click', demos: [
+      { id: 'startup', title: 'VC-Backed SaaS (Runway 5 months)', desc: 'MRR flat; churn ?; infra +18%; SOC2 gap stalls 12% ARR renewal', icon: 'bi-rocket', prompt: 'You are CEO of a VC-backed B2B SaaS: $850k MRR, 3.5% monthly churn, NDR 98%, CAC payback 18 mo, gross margin 73%. Cash $3.2M (runway ~5 mo). Hyperscaler raises infra +18%. Largest customer (12% ARR) delays renewal due to SOC2 gaps. Board wants a credible, quantified plan before quarter close. Prioritize actions with owners, timelines, and $ impact; call out risks and mitigations.' },
+      { id: 'retail', title: 'Omnichannel Retail (Liquidity Crunch)', desc: 'Footfall -14%; leases roll; 22% aging stock; vendors tighten terms', icon: 'bi-bag', prompt: 'You are COO at a 180-store apparel chain. Store footfall -14% YoY; e-comm AOV -7%; inventory aging >90d at 22%; shrink 2.1%. Three anchor leases up in 60d (+9% rent ask). Two key vendors shorten terms; bank revolver utilization 78%. Propose markdowns, lease renegotiation, supplier credit steps, and labor scheduling. Quantify cash, GM%, and service-level risk.' },
+      { id: 'ev', title: 'EV OEM (Recall + Commodities)', desc: 'BMS defect 1.4% rate; cobalt +23%; subsidy taper; charging NPS 34', icon: 'bi-ev-front', prompt: 'You are VP Ops at an EV OEM shipping 4 models in NA/EU. Early field failures show a batch-level BMS defect (1.4% incident rate). Cobalt +23%; two EU subsidies taper next quarter. Charging network NPS falls 55->34 (uptime issues). Outline recall vs field-fix, supplier re-pricing, and customer comp. Model GM%, unit volume, warranty reserve impact.' },
+      { id: 'fintech', title: 'Payments Fintech (Fraud Spike & Compliance)', desc: 'Card-not-present fraud +60 bps; chargebacks spike; partner bank audit', icon: 'bi-credit-card', prompt: 'You are Head of Risk at a payments fintech. CNP fraud rises +60 bps on long-tail merchants; chargebacks up 35% MoM; dispute backlog 18 days (SLA 7). Partner bank flags KYC gaps; asks for remediation plan within 10 days. Propose controls (rules, models, 3DS2), merchant comms, staffing, and bank engagement. Quantify loss reduction, false positives, and revenue impact.' }
+    ], systemPrompt: 'You are "The Executive"...', model: DEFAULT_MODEL }
+  }
 }
 
 // Demo cards UI
 async function renderDemoCards(cfg) {
-  const row = $('#demo-cards .row'); row.innerHTML = ''
-  cfg.demos.forEach(d => { const col = document.createElement('div'); col.className = 'col-md-4 col-lg-3'; col.innerHTML = `
+  // Ensure row container exists
+  let row = $("#demo-cards .row")
+  const wrap = $("#demo-cards")
+  if (!row && wrap) { row = document.createElement("div"); row.className = "row g-3 justify-content-center mb-4"; wrap.appendChild(row) }
+  if (!row) return
+  row.innerHTML = ''
+  ;(cfg.demos || []).forEach(d => { const col = document.createElement('div'); col.className = 'col-md-4 col-lg-3'; col.innerHTML = `
     <div class="card demo-card h-100" data-demo-id="${d.id}">
       <div class="card-body d-flex flex-column">
         <div class="mb-3"><i class="fs-1 text-primary bi ${d.icon}"></i></div>
@@ -122,7 +158,7 @@ async function renderDemoCards(cfg) {
       <div class="card-body d-flex flex-column">
         <div class="mb-3"><i class="fs-1 text-success bi bi-lightning-charge-fill"></i></div>
         <h6 class="card-title h5 mb-2">Start Fresh</h6>
-        <p class="card-text">Begin a free-form chat with the advisor. No preset scenario, no sign-in required.</p>
+        <p class="card-text">Begin a free-form chat with the advisor.</p>
         <div class="mt-auto"><button class="btn btn-success w-100 start-demo">Start</button></div>
       </div>
     </div>`; row.appendChild(freshCol)
@@ -130,7 +166,7 @@ async function renderDemoCards(cfg) {
   row.addEventListener('click', (e) => {
     const btn = e.target.closest('.start-demo'); if (!btn) return; const card = e.target.closest('.demo-card'); const id = card?.dataset?.demoId;
     if (id === '__fresh__') { startFreshChat(); return }
-    const demo = cfg.demos.find(x => x.id === id); if (demo) startNewGame(demo)
+    const demo = (cfg.demos || []).find(x => x.id === id); if (demo) startNewGame(demo)
   })
 }
 
@@ -151,20 +187,18 @@ function appendMsg(role, text) {
 let streamMsgEl = null; function ensureStreamEl() { if (!streamMsgEl) streamMsgEl = appendMsg('ai', ''); return streamMsgEl } function clearStreamEl() { streamMsgEl = null }
 function setLoading(v) { $('#user-input').disabled = v; $('#send-btn').disabled = v }
 
-// LLM calls (streaming uses system prompt + temperature)
+// LLM calls (streaming uses system prompt)
 async function* streamAIResponse(history) {
   try {
     const cfg = await loadConfig();
     const systemPrompt = $('#system-prompt')?.value?.trim() || cfg.systemPrompt;
     const formModel = ($('#model')?.value || '').trim();
-    const formTemp = parseFloat($('#temperature')?.value || `${cfg.temperature}`);
     const ocfg = await loadOrInitOpenAIConfig();
     const baseUrl = (ocfg?.baseUrl || DEFAULT_BASE_URL).replace(/\/$/, '');
     const apiKey = ocfg?.apiKey || '';
     const model = formModel || (ocfg?.models?.[0]) || cfg.model || DEFAULT_MODEL;
-    const temperature = isNaN(formTemp) ? (cfg.temperature || 0.7) : formTemp;
     const { asyncLLM } = await loadModule('asyncllm', 'https://cdn.jsdelivr.net/npm/asyncllm@2/+esm');
-    const body = { model, temperature, stream: true, messages: [{ role: 'system', content: systemPrompt }, ...history] };
+    const body = { model, stream: true, messages: [{ role: 'system', content: systemPrompt }, ...history] };
     for await (const { content, error } of asyncLLM(`${baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` }, body: JSON.stringify(body) })) {
       if (error) throw new Error(error); if (content) yield content
     }
@@ -174,25 +208,25 @@ async function fetchAIResponse(history) {
   const cfg = await loadConfig();
   const systemPrompt = $('#system-prompt')?.value?.trim() || cfg.systemPrompt;
   const formModel = ($('#model')?.value || '').trim();
-  const formTemp = parseFloat($('#temperature')?.value || `${cfg.temperature}`);
   const ocfg = await loadOrInitOpenAIConfig();
   const baseUrl = (ocfg?.baseUrl || DEFAULT_BASE_URL).replace(/\/$/, '');
   const apiKey = ocfg?.apiKey || '';
   const model = formModel || (ocfg?.models?.[0]) || cfg.model || DEFAULT_MODEL;
-  const temperature = isNaN(formTemp) ? (cfg.temperature || 0.7) : formTemp;
   let full = '';
   try {
     const { asyncLLM } = await loadModule('asyncllm', 'https://cdn.jsdelivr.net/npm/asyncllm@2/+esm');
-    const body = { model, temperature, stream: true, messages: [{ role: 'system', content: systemPrompt }, ...history] };
-    let gotStream = false;
+    const body = { model, stream: true, messages: [{ role: 'system', content: systemPrompt }, ...history] };
     for await (const { content, error } of asyncLLM(`${baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` }, body: JSON.stringify(body) })) {
       if (error) { console.warn('stream error', error); break }
-      if (content) { gotStream = true; full = content }
+      if (content) { full = content }
     }
   } catch (e) {
     console.warn('LLM stream failed; falling back:', e?.message || e)
     try {
-      const body = { model, temperature, messages: [{ role: 'system', content: systemPrompt }, ...history] };
+      const body = { model, messages: [{ role: 'system', content: systemPrompt }, ...history] };
+      const res = await fetch(`${baseUrl}/chat/completions`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` }, body: JSON.stringify(body) })
+      const data = await res.json();
+      full = data?.choices?.[0]?.message?.content || ''
     } catch (ee) {
       await showAlert({ title: 'LLM request failed', body: String(ee?.message || ee), color: 'danger' })
     }
@@ -265,15 +299,4 @@ $('#send-btn').addEventListener('click', (e) => { e.preventDefault(); handleSend
 $('#auth-btn').addEventListener('click', signIn); $('#signout-btn').addEventListener('click', signOut); $('#profile-btn').addEventListener('click', openProfile); $('#continue-session').addEventListener('click', continueFromSelected); $('#delete-session').addEventListener('click', deleteSelectedSession)
 
 // Init
-;(async () => { const cfg = await loadConfig(); await renderDemoCards(cfg); await waitSupabaseReady(); await refreshAuthState(); if ($('#system-prompt') && !$('#system-prompt').value) $('#system-prompt').value = cfg.systemPrompt; if ($('#model') && !$('#model').value) $('#model').value = cfg.model; if ($('#temperature') && !$('#temperature').value) $('#temperature').value = `${cfg.temperature}`; try { if (cfg.title) { document.title = cfg.title; $('.navbar-brand').textContent = cfg.title; $('.display-1').textContent = cfg.title } if (cfg.subtitle) { $('.display-6').textContent = cfg.subtitle } } catch {} })()
-
-
-
-
-
-
-
-
-
-
-
+;(async () => { const cfg = await loadConfig(); await renderDemoCards(cfg); await waitSupabaseReady(); await refreshAuthState(); if ($('#system-prompt') && !$('#system-prompt').value) $('#system-prompt').value = cfg.systemPrompt; if ($('#model') && !$('#model').value) $('#model').value = cfg.model; try { if (cfg.title) { document.title = cfg.title; $('.navbar-brand').textContent = cfg.title; $('.display-1').textContent = cfg.title } if (cfg.subtitle) { $('.display-6').textContent = cfg.subtitle } } catch {} })()

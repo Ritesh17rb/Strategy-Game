@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -58,13 +58,8 @@
         <form id="settings-form" class="row g-3">
           <div class="col-md-6">
             <label for="model" class="form-label">Model</label>
-            <input id="model" name="model" class="form-control" placeholder="gpt-4o-mini" />
-          </div>
-          <div class="col-md-6">
-            <label for="temperature" class="form-label">Temperature</label>
-            <input id="temperature" name="temperature" class="form-control" type="number" min="0" max="2" step="0.1" value="0.7" />
-          </div>
-          <div class="col-12">
+            <input id="model" name="model" class="form-control" placeholder="gpt-5-nano" />
+          </div><div class="col-12">
             <label for="system-prompt" class="form-label">System prompt</label>
             <textarea id="system-prompt" name="systemPrompt" class="form-control" rows="6" placeholder="The Executive..."></textarea>
           </div>
@@ -90,7 +85,7 @@
         <h5 class="card-title">Simulation</h5>
         <div id="chat" class="chat-box border rounded p-2 bg-body-tertiary mb-3"></div>
         <form id="chat-form" class="d-flex gap-2">
-          <textarea id="user-input" class="form-control" rows="2" placeholder="Type to chat, or start a demo. (Ctrl/Cmd+Enter to send)" disabled></textarea>
+          <textarea id="user-input" class="form-control" rows="3" placeholder="Type to chat, or start a demo. (Ctrl/Cmd+Enter to send)" disabled></textarea>
           <button id="send-btn" class="btn btn-primary" disabled>Send</button>
         </form>
         <div class="small text-muted mt-2">Tip: Click "Configure LLM" to set your OpenAI-compatible Base URL and API key.</div>
