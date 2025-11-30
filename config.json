@@ -1,0 +1,37 @@
+{
+    "title":  "Case Study Simulator",
+    "subtitle":  "High-stakes management practice with one click",
+    "demos":  [
+                  {
+                      "id":  "startup",
+                      "title":  "VC-Backed SaaS (Runway 5 months)",
+                      "desc":  "MRR flat; churn ?; infra +18%; SOC2 gap stalls 12% ARR renewal",
+                      "icon":  "bi-rocket",
+                      "prompt":  "You are CEO of a VC-backed B2B SaaS: $850k MRR, 3.5% monthly churn, NDR 98%, CAC payback 18 mo, gross margin 73%. Cash $3.2M (runway ~5 mo). Hyperscaler raises infra +18%. Largest customer (12% ARR) delays renewal due to SOC2 gaps. Board wants a credible, quantified plan before quarter close. Prioritize actions with owners, timelines, and $ impact; call out risks and mitigations."
+                  },
+                  {
+                      "id":  "retail",
+                      "title":  "Omnichannel Retail (Liquidity Crunch)",
+                      "desc":  "Footfall -14%; leases roll; 22% aging stock; vendors tighten terms",
+                      "icon":  "bi-bag",
+                      "prompt":  "You are COO at a 180-store apparel chain. Store footfall -14% YoY; e-comm AOV -7%; inventory aging \u003e90d at 22%; shrink 2.1%. Three anchor leases up in 60d (+9% rent ask). Two key vendors shorten terms; bank revolver utilization 78%. Propose markdowns, lease renegotiation, supplier credit steps, and labor scheduling. Quantify cash, GM%, and service-level risk."
+                  },
+                  {
+                      "id":  "ev",
+                      "title":  "EV OEM (Recall + Commodities)",
+                      "desc":  "BMS defect 1.4% rate; cobalt +23%; subsidy taper; charging NPS 34",
+                      "icon":  "bi-ev-front",
+                      "prompt":  "You are VP Ops at an EV OEM shipping 4 models in NA/EU. Early field failures show a batch-level BMS defect (1.4% incident rate). Cobalt +23%; two EU subsidies taper next quarter. Charging network NPS falls 55-\u003e34 (uptime issues). Outline recall vs field-fix, supplier re-pricing, and customer comp. Model GM%, unit volume, warranty reserve impact."
+                  },
+                  {
+                      "id":  "fintech",
+                      "title":  "Payments Fintech (Fraud Spike \u0026 Compliance)",
+                      "desc":  "Card-not-present fraud +60 bps; chargebacks spike; partner bank audit",
+                      "icon":  "bi-credit-card",
+                      "prompt":  "You are Head of Risk at a payments fintech. CNP fraud rises +60 bps on long-tail merchants; chargebacks up 35% MoM; dispute backlog 18 days (SLA 7). Partner bank flags KYC gaps; asks for remediation plan within 10 days. Propose controls (rules, models, 3DS2), merchant comms, staffing, and bank engagement. Quantify loss reduction, false positives, and revenue impact."
+                  }
+              ],
+    "systemPrompt":  "You are \"The Executive\", a high-fidelity, text-based business simulation engine.\n\n### CORE DIRECTIVES:\n1. Realism is key: scenarios are gritty and complex; every decision has trade-offs (e.g., cutting costs hurts morale; raising prices risks churn).\n2. Visual hierarchy: use Markdown for scannability.\n   - Use headings and subheadings to organize sections.\n   - Highlight key numbers and critical entities in bold.\n   - Use bullet/numbered lists for options and actions.\n   - Use blockquotes (\u003e) for headlines, quotes, or internal memos.\n3. The loop:\n   - PHASE 1: The Fallout ? summarize direct consequences of the previous action.\n   - PHASE 2: The Dashboard ? show a compact company health snapshot (e.g., Cash, Morale, Market Share, Stock).\n   - PHASE 3: The Crisis ? present the new challenge clearly.\n   - PHASE 4: The Decision ? present 3 distinct strategic options (A, B, C) and always accept custom free-text input.\n\n### TONE:\nProfessional, urgent, and immersive. You are the narrator of a high-stakes corporate thriller.\n\n### RULES:\n- Never output walls of text; break paragraphs often.\n- Bold key numbers and named entities.\n- Use time skips (e.g., \"3 months later\") to keep the simulation moving.\n- Do not auto-start or force a choice; wait for the user or scenario prompt. No generic greetings like \"Welcome\" or \"Choose A/B/C\".",
+    "model":  "gpt-4o-mini",
+    "temperature":  0.7
+}
