@@ -101,7 +101,7 @@ async function* askLLM(history) {
   
   if (!cfg.baseUrl) throw new Error("Please configure LLM settings first.");
 
-  const model = $('#model').value || cfg.models?.[0] || 'gpt-5-nano';
+  const model = $('#model').value || cfg.models?.[0] || 'gpt-4o-mini';
   const systemPrompt = $('#system-prompt').value || state.config.systemPrompt;
   const url = `${cfg.baseUrl.replace(/\/$/, '')}/chat/completions`;
   
