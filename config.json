@@ -1,14 +1,7 @@
 {
-  "title": "Case Study Simulator",
+  "title": "Strategy Game",
   "subtitle": "High-stakes management practice with one click",
   "demos": [
-    {
-      "id": "startup",
-      "title": "VC-Backed SaaS (Runway 5 months)",
-      "desc": "MRR flat; churn ?; infra +18%; SOC2 gap stalls 12% ARR renewal",
-      "icon": "bi-rocket",
-      "prompt": "You are CEO of a VC-backed B2B SaaS: $850k MRR, 3.5% monthly churn, NDR 98%, CAC payback 18 mo, gross margin 73%. Cash $3.2M (runway ~5 mo). Hyperscaler raises infra +18%. Largest customer (12% ARR) delays renewal due to SOC2 gaps. Board wants a credible, quantified plan before quarter close. Prioritize actions with owners, timelines, and $ impact; call out risks and mitigations."
-    },
     {
       "id": "retail",
       "title": "Omnichannel Retail (Liquidity Crunch)",

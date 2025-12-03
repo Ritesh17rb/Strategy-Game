@@ -275,7 +275,7 @@ function renderDemos() {
       </div>
     </div>`;
 
-  row.innerHTML = cards + freshCard;
+  row.innerHTML =  freshCard+cards;
 }
 
 // --- 8. Event Handling & Helpers ---
